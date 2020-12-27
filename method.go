@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dsprenkels/sss-go"
+	sss "github.com/dsprenkels/sss-go"
 	"github.com/google/uuid"
 )
 
@@ -36,6 +36,10 @@ func NewSecret() *Secret {
 }
 
 func (e *Secret) StartUnseal(_, reply *string) error {
+	if len(e.UnsealPools) >= 10000 {
+		return errors.New("to_many_unseals")
+	}
+
 	id := uuid.New().String()
 	*reply = id
 
@@ -52,20 +56,20 @@ func (e *Secret) StartUnseal(_, reply *string) error {
 func (e *Secret) Unseal(in *UnsealInput, reply *string) error {
 	pool, ok := e.UnsealPools[in.Pool]
 	if !ok {
-		return errors.New("Unseal does not exist")
+		return errors.New("no_unseal")
 	}
 
 	pool.Add(in.Share)
 
 	restored, err := sss.CombineShares(pool.Shares)
 	if err != nil {
-		return err
+		return errors.New("restoration_failed")
 	}
 
 	secret := string(bytes.Trim(restored, "\x00"))
 
 	if !strings.HasPrefix(secret, "~!") || !strings.HasSuffix(secret, "!~") {
-		return errors.New("Unable to restore secret. Try to add more shared keys OR restart the unseal")
+		return errors.New("need_more_shares")
 	}
 
 	secret = strings.TrimPrefix(secret, "~!")
