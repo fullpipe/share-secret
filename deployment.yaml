@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: share-secret-api
+  namespace: share-secret
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: share-secret-api
+  template:
+    metadata:
+      labels:
+        app: share-secret-api
+    spec:
+      containers:
+        - name: share-secret-api
+          image: fullpipe/share-secret-api:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "64Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: share-secret-api
+  namespace: share-secret
+spec:
+  ports:
+    - name: http
+      targetPort: 8080
+      port: 8080
+  selector:
+    app: share-secret-api
