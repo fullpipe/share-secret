@@ -1,6 +1,5 @@
 FROM golang AS builder
 
-ENV GO111MODULE=on
 WORKDIR /app
 
 COPY . .
@@ -14,4 +13,3 @@ EXPOSE 8080
 COPY --from=builder /app/share-secret /share-secret
 
 ENTRYPOINT ["/share-secret"]
-
